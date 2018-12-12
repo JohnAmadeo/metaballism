@@ -11,7 +11,7 @@ const SCENE = {
 	),
 	OBJECTS: [
 		Sphere(
-			center=Vec(4, 4, -10),
+			center=Vec(0, 0, -7),
 			radius=1,
 		),
 		// Sphere(

@@ -53,6 +53,7 @@ function sphereTrace(ray, objects) {
 	let rayDistance = 0;
 	
 	const threshold = 10e-6;
+	let numSteps = 0;
 	
 	while (rayDistance < maxDistance) {
 		// keeps track of the shortest distance we've found between our ray 
@@ -80,12 +81,16 @@ function sphereTrace(ray, objects) {
 		// Check if ray point is so close to an object we can approximate 
 		// that it has intersected with that object
 		if (minRayToObjDistance <= threshold * rayDistance) {
-			return Color.BLACK;
+			return Color(
+				Color.WHITE.r * (numSteps / 20),
+				Color.WHITE.g * (numSteps / 20),
+				Color.WHITE.b * (numSteps / 20),
+			);
 		}
 		
 		rayDistance += minRayToObjDistance;
+		numSteps += 1;
 	}
-	// let numSteps = 0;
 	
 	return Color.RED;
 }
