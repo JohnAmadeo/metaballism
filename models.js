@@ -28,6 +28,7 @@ function Sphere(center, radius, color, lambert)  {
 		throw "Not a valid sphere"
 	}
 	return {
+		type: 'Sphere',
 		center,
 		radius,
 		color,
@@ -73,6 +74,7 @@ function MetaballGroup(metaballs, color, lambert) {
 	}
 		
 	return {
+		type: 'MetaballGroup',
 		metaballs,
 		color,
 		lambert,

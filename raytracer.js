@@ -1,13 +1,20 @@
 const NUM_STEPS = {};
 
 function render(pixelWidth, pixelHeight) {
+	setInterval(() => {
+		raytrace(512, 512);
+		move_DANGEROUS();		
+	}, 20);
+}
+
+function raytrace(pixelWidth, pixelHeight) {
 	let { ctx, imageData } = getImageData('c', pixelWidth, pixelHeight);
 	
 	let numPixels = 0;
 	for (let pixelY = 0; pixelY < pixelHeight -100; pixelY++) {
 		for (let pixelX = 0; pixelX < pixelWidth; pixelX++) {
 			const ray = pixelToRay(pixelX, pixelY, pixelWidth, pixelHeight);
-			let intersection = intersectWSphereTracing(
+			let intersection = intersect(
 				ray, 
 				SCENE.OBJECTS, 
 			);
@@ -18,7 +25,7 @@ function render(pixelWidth, pixelHeight) {
 			}
 			
 			const { rayPoint, object } = intersection;
-			const pixelColor = shade(rayPoint, object, SCENE.LIGHTS);
+			const pixelColor = shade(rayPoint, object, SCENE.LIGHTS, SCENE.OBJECTS);
 			setPixelColor(imageData, pixelX, pixelY, pixelColor);
 		}
 	}
@@ -48,7 +55,7 @@ function pixelToRay(pixelX, pixelY, pixelWidth, pixelHeight) {
 }
 
 // Check for ray-object intersection using sphere-tracing 
-function intersectWSphereTracing(ray, objects) {
+function intersect(ray, objects) {
 	// NOTE: Cheat optimization: make the distance short 
 	const maxDistance = 20;
 	// the magnitude of the distance the ray has travelled from its origin

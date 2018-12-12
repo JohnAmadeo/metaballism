@@ -29,15 +29,15 @@ const SCENE = {
 				// 	radius=1,
 				// ),
 				Metaball(
-					center=Vec(-1.8, 0, -11),
+					center=Vec(-2, 0, -11),
 					radius=2,
 				),
 				Metaball(
-					center=Vec(-0.4, 2.3, -11),
+					center=Vec(2.4, 2.3, -11),
 					radius=1.5,
 				),
 				Metaball(
-					center=Vec(0.6, 0.8, -11),
+					center=Vec(2.6, 0.4, -11),
 					radius=1.5,
 				),
 			],
@@ -47,7 +47,7 @@ const SCENE = {
 	],
 	LIGHTS: [
 		PointLight(
-			position=Vec(0, 5, -8),
+			position=Vec(0, 0, -5),
 			color=Color.WHITE,
 		),
 	],
