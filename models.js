@@ -35,13 +35,16 @@ function Sphere(center, radius)  {
 	}
 }
 
-function MetaballGroup(metaballs) {
+function MetaballGroup(metaballs) {	
+	// precompute so we don't have to redo it every time duf is called
+	const radiiSum = metaballs
+		.map(metaball => metaball.radius)
+		.reduce((tot, radius) => tot + radius, 0);
+	
 	// define density function of a metaball as a closure
 	function getDensity(metaball, point) {
 		// distance from ray point to the center of the metaball
-		const r = Vec.magnitude(
-			Vec.subtract(point, metaball.center)
-		);
+		const r = Vec.distance(point, metaball.center);
 		const R = metaball.radius;
 		
 		if (r >= R) {
@@ -54,20 +57,29 @@ function MetaballGroup(metaballs) {
 			1
 		);
 	}
-	
+		
 	return {
 		metaballs,
 		duf: function(point) {
 			const threshold = 0.2;
-			const radiiSum = metaballs
-				.map(metaball => metaball.radius)
-				.reduce((tot, radius) => tot + radius, 0);
 			
 			const densitySum = metaballs
 				.map(metaball => getDensity(metaball, point))
 				.reduce((tot, density) => tot + density, 0);
 				
-			return (2 / 3) * (threshold - densitySum) * radiiSum;			
+			// Treat metaballs as spheres and calculate the shrotest distance 
+			// from the ray point to the "surface" of the sphere. This optimization
+			// step is needed as otherwise the sphere tracing algorithm can only 
+			// move forward by [threshold] every iteration even if the ray
+			// is very far from any metaballs
+			const minRayToSurfaceDist = metaballs
+				.map(m => Vec.distance(m.center, point) - m.radius)
+				.reduce((min, dist) => dist < min ? dist : min, Number.POSITIVE_INFINITY);
+			
+			return Math.max(
+				minRayToSurfaceDist, 
+				(2 / 3) * (threshold - densitySum) * radiiSum
+			);
 		}
 	}
 }
@@ -84,6 +96,10 @@ Vec.valid = function(v) {
 		typeof v.x === 'number' &&
 		typeof v.y === 'number' &&
 		typeof v.z === 'number';
+}
+
+Vec.distance = function(p1, p2) {
+	return Vec.magnitude(Vec.subtract(p1, p2));
 }
 
 Vec.dotProduct = function(v1, v2) {

@@ -1,28 +1,38 @@
+const NUM_STEPS = {};
+
 function render(pixelWidth, pixelHeight) {
 	let { ctx, imageData } = getImageData('c', pixelWidth, pixelHeight);
 	
-	for (let pixelY = 0; pixelY < pixelHeight; pixelY++) {
+	let numPixels = 0;
+	for (let pixelY = 0; pixelY < pixelHeight -100; pixelY++) {
 		for (let pixelX = 0; pixelX < pixelWidth; pixelX++) {
+			if (Math.random() < 0) {
+				setPixelColor(imageData, pixelX, pixelY, Color.WHITE);
+				continue;
+			}
+			
 			const ray = pixelToRay(pixelX, pixelY, pixelWidth, pixelHeight);
 			
 			if (SCENE.ALGORITHM === 'spheretracing') {
 				const pixelColor = sphereTrace(ray, SCENE.OBJECTS);
 				setPixelColor(imageData, pixelX, pixelY, pixelColor);	
 			}
-			else if (SCENE.ALGORITHM === 'roots'){
-				const sphere = SCENE.OBJECTS[0];
-				
-				const spherePoint = sphereIntersection(ray, sphere);
-				let pixelColor;
-
-				if (spherePoint === null) {
-					setPixelColor(imageData, pixelX, pixelY, Color.RED);
-				} else {				
-					setPixelColor(imageData, pixelX, pixelY, Color.BLACK);
-				}
-			}
+			// else if (SCENE.ALGORITHM === 'roots'){
+			// 	const sphere = SCENE.OBJECTS[0];
+			// 
+			// 	const spherePoint = sphereIntersection(ray, sphere);
+			// 	let pixelColor;
+			// 
+			// 	if (spherePoint === null) {
+			// 		setPixelColor(imageData, pixelX, pixelY, Color.RED);
+			// 	} else {				
+			// 		setPixelColor(imageData, pixelX, pixelY, Color.BLACK);
+			// 	}
+			// }
 		}
 	}
+	
+	l(NUM_STEPS);
 	
 	// fill the canvas with the computer pixel values
 	ctx.putImageData(imageData, 0, 0);
@@ -48,12 +58,12 @@ function pixelToRay(pixelX, pixelY, pixelWidth, pixelHeight) {
 }
 
 function sphereTrace(ray, objects) {
-	const maxDistance = 100;
+	// NOTE: Cheat optimization: make the distance short 
+	const maxDistance = 20;
 	// the magnitude of the distance the ray has travelled from its origin
 	let rayDistance = 0;
-	
-	const threshold = 10e-6;
 	let numSteps = 0;
+	const threshold = 10e-6;
 	
 	while (rayDistance < maxDistance) {
 		// keeps track of the shortest distance we've found between our ray 
@@ -67,12 +77,10 @@ function sphereTrace(ray, objects) {
 			)
 		);
 		
-		// ALL SPHERES
 		for (let object of objects) {
-			const sphere = object;
 			// get a distance x <= the distance from the point on the ray to the
 			// closest point on the surface of the primitive
-			const rayToObjDistance = sphere.duf(rayPoint);
+			const rayToObjDistance = object.duf(rayPoint);
 			if (rayToObjDistance < minRayToObjDistance) {
 				minRayToObjDistance = rayToObjDistance;
 			}
@@ -81,17 +89,22 @@ function sphereTrace(ray, objects) {
 		// Check if ray point is so close to an object we can approximate 
 		// that it has intersected with that object
 		if (minRayToObjDistance <= threshold * rayDistance) {
-			return Color.BLACK;
-			// return Color(
-			// 	Color.WHITE.r * (numSteps / 15),
-			// 	Color.WHITE.g * (numSteps / 15),
-			// 	Color.WHITE.b * (numSteps / 15),
-			// );
+			// return Color.BLACK;
+			return Color(
+				Color.WHITE.r * Math.min(1, (numSteps / 10)),
+				Color.WHITE.g * Math.min(1, (numSteps / 10)),
+				Color.WHITE.b * Math.min(1, (numSteps / 10)),
+			);
 		}
 		
 		rayDistance += minRayToObjDistance;
 		numSteps += 1;
 	}
+	
+	if (!(numSteps in NUM_STEPS)) {
+		NUM_STEPS[numSteps] = 0;
+	}
+	NUM_STEPS[numSteps] += 1;
 	
 	return Color.RED;
 }

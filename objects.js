@@ -24,8 +24,16 @@ const SCENE = {
 				radius=1,
 			),
 			Metaball(
+				center=Vec(1.4, 0, -11),
+				radius=1,
+			),
+			Metaball(
 				center=Vec(-1.8, 0, -11),
 				radius=2,
+			),
+			Metaball(
+				center=Vec(-0.4, 2.3, -11),
+				radius=1.5,
 			),
 		]),
 	],
