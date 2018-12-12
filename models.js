@@ -11,6 +11,13 @@ function Ray(origin, direction) {
 	return { origin, direction }; 
 }
 
+function Camera(origin, fov, zDirection) {
+	if (!Vec.valid(origin) || typeof fov !== 'number' || (zDirection !== -1 && zDirection !== 1)) {
+		throw "Not a valid camera";
+	}
+	return { origin, fov, zDirection };
+}
+
 function Sphere(center, radius)  {
 	if (typeof radius !== 'number' || !Vec.valid(center)) {
 		throw "Not a valid sphere"
@@ -58,6 +65,7 @@ Vec.subtract = function(v1, v2) {
 
 Color.BLACK = Color(0, 0, 0);
 Color.WHITE = Color(255, 255, 255);
+Color.RED = Color(255, 0, 0);
 
 // module.exports = {
 // 	Vec,
