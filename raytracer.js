@@ -6,29 +6,9 @@ function render(pixelWidth, pixelHeight) {
 	let numPixels = 0;
 	for (let pixelY = 0; pixelY < pixelHeight -100; pixelY++) {
 		for (let pixelX = 0; pixelX < pixelWidth; pixelX++) {
-			if (Math.random() < 0) {
-				setPixelColor(imageData, pixelX, pixelY, Color.WHITE);
-				continue;
-			}
-			
 			const ray = pixelToRay(pixelX, pixelY, pixelWidth, pixelHeight);
-			
-			if (SCENE.ALGORITHM === 'spheretracing') {
-				const pixelColor = sphereTrace(ray, SCENE.OBJECTS);
-				setPixelColor(imageData, pixelX, pixelY, pixelColor);	
-			}
-			// else if (SCENE.ALGORITHM === 'roots'){
-			// 	const sphere = SCENE.OBJECTS[0];
-			// 
-			// 	const spherePoint = sphereIntersection(ray, sphere);
-			// 	let pixelColor;
-			// 
-			// 	if (spherePoint === null) {
-			// 		setPixelColor(imageData, pixelX, pixelY, Color.RED);
-			// 	} else {				
-			// 		setPixelColor(imageData, pixelX, pixelY, Color.BLACK);
-			// 	}
-			// }
+			const pixelColor = sphereTrace(ray, SCENE.OBJECTS, SCENE.LIGHTS);
+			setPixelColor(imageData, pixelX, pixelY, pixelColor);	
 		}
 	}
 	
@@ -57,7 +37,7 @@ function pixelToRay(pixelX, pixelY, pixelWidth, pixelHeight) {
 	);
 }
 
-function sphereTrace(ray, objects) {
+function sphereTrace(ray, objects, lights) {
 	// NOTE: Cheat optimization: make the distance short 
 	const maxDistance = 20;
 	// the magnitude of the distance the ray has travelled from its origin
@@ -66,9 +46,6 @@ function sphereTrace(ray, objects) {
 	const threshold = 10e-6;
 	
 	while (rayDistance < maxDistance) {
-		// keeps track of the shortest distance we've found between our ray 
-		// and the surface of a primitive
-		let minRayToObjDistance = Number.POSITIVE_INFINITY;
 		const rayPoint = Vec.add(
 			ray.origin,
 			Vec.scale(
@@ -77,12 +54,18 @@ function sphereTrace(ray, objects) {
 			)
 		);
 		
+		// keeps track of the shortest distance we've found between our ray 
+		// and the surface of a primitive
+		let minRayToObjDistance = Number.POSITIVE_INFINITY;
+		let intersectingObject = null;
+		
 		for (let object of objects) {
 			// get a distance x <= the distance from the point on the ray to the
 			// closest point on the surface of the primitive
 			const rayToObjDistance = object.duf(rayPoint);
 			if (rayToObjDistance < minRayToObjDistance) {
 				minRayToObjDistance = rayToObjDistance;
+				intersectingObject = object;
 			}
 		}
 		
@@ -90,11 +73,13 @@ function sphereTrace(ray, objects) {
 		// that it has intersected with that object
 		if (minRayToObjDistance <= threshold * rayDistance) {
 			// return Color.BLACK;
-			return Color(
-				Color.WHITE.r * Math.min(1, (numSteps / 10)),
-				Color.WHITE.g * Math.min(1, (numSteps / 10)),
-				Color.WHITE.b * Math.min(1, (numSteps / 10)),
-			);
+			// return Color(
+			// 	Color.WHITE.r * Math.min(1, (numSteps / 10)),
+			// 	Color.WHITE.g * Math.min(1, (numSteps / 10)),
+			// 	Color.WHITE.b * Math.min(1, (numSteps / 10)),
+			// );
+			return shade(rayPoint, intersectingObject, lights);
+			// return Color.BLACK;
 		}
 		
 		rayDistance += minRayToObjDistance;
@@ -107,6 +92,65 @@ function sphereTrace(ray, objects) {
 	NUM_STEPS[numSteps] += 1;
 	
 	return Color.RED;
+}
+
+function getNormal(rayPoint, object) {
+	const delta = 10e-5;
+	const pt = rayPoint;
+	
+	const xNorm = 
+		object.duf(Vec.add(rayPoint, Vec(delta, 0, 0))) - 
+		object.duf(Vec.add(rayPoint, Vec(-delta, 0, 0)));
+		
+	const yNorm = 
+		object.duf(Vec.add(rayPoint, Vec(0, delta, 0))) - 
+		object.duf(Vec.add(rayPoint, Vec(0, -delta, 0)));
+		
+	const zNorm = 
+		object.duf(Vec.add(rayPoint, Vec(0, 0, delta))) - 
+		object.duf(Vec.add(rayPoint, Vec(0, 0, -delta)));
+		
+	return Vec.unitVector(Vec(xNorm, yNorm, zNorm));
+}
+
+function shade(rayPoint, object, lights) {
+	const normal = getNormal(rayPoint, object);
+	let pixelColor = Color.BLACK;
+	
+	for (let light of lights) {
+		const lightDirection = Vec.unitVector(
+			Vec.subtract(light.point, rayPoint)
+		);
+		
+		const illumination = Math.max(
+			0,
+			Vec.dotProduct(
+				lightDirection, 
+				// unit normal coming out of the sphere
+				normal,
+			),
+		);
+		
+		pixelColor = Color.add(
+			pixelColor,
+			Color.scale(
+				light.color,
+				illumination,
+			)
+		);
+	}
+	
+	pixelColor = Color(
+		pixelColor.r * object.color.r,
+		pixelColor.g * object.color.g,
+		pixelColor.b * object.color.b,
+	);
+	
+	pixelColor = Color.scale(pixelColor, object.lambert);
+	pixelColor = Color.scale(pixelColor, 1 / 255);
+
+	// l(pixelColor);
+	return pixelColor;
 }
 
 function sphereIntersection(ray, sphere) {

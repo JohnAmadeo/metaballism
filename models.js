@@ -18,13 +18,20 @@ function Camera(origin, fov, zDirection) {
 	return { origin, fov, zDirection };
 }
 
-function Sphere(center, radius)  {
-	if (typeof radius !== 'number' || !Vec.valid(center)) {
+function Sphere(center, radius, color, lambert)  {
+	if (
+		typeof radius !== 'number' || 
+		typeof lambert !== 'number' || 
+		!Vec.valid(center) || 
+		!Color.valid(color)
+	) {
 		throw "Not a valid sphere"
 	}
 	return {
 		center,
 		radius,
+		color,
+		lambert,
 		// distance underestimating function
 		duf: function(point) {
 			if (!Vec.valid(point)) {
@@ -35,7 +42,14 @@ function Sphere(center, radius)  {
 	}
 }
 
-function MetaballGroup(metaballs) {	
+function MetaballGroup(metaballs, color, lambert) {	
+	if (
+		typeof lambert !== 'number' || 
+		!Color.valid(color)
+	) {
+		throw "Not a valid metaball group"
+	}
+	
 	// precompute so we don't have to redo it every time duf is called
 	const radiiSum = metaballs
 		.map(metaball => metaball.radius)
@@ -60,6 +74,8 @@ function MetaballGroup(metaballs) {
 		
 	return {
 		metaballs,
+		color,
+		lambert,
 		duf: function(point) {
 			const threshold = 0.2;
 			
@@ -85,10 +101,20 @@ function MetaballGroup(metaballs) {
 }
 
 function Metaball(center, radius) {
-	// take advantage of built-in type checking in Sphere
-	let sphere = Sphere(center, radius);
-	delete sphere.duf;
-	return sphere;
+	if (
+		typeof radius !== 'number' || 
+		!Vec.valid(center)
+	) {
+		throw "Not a valid metaball"
+	}
+	return { center, radius };
+}
+
+function PointLight(point, color) {
+	if (!Color.valid(color) || !Vec.valid(point)) {
+		throw "Not a valid point light";
+	}
+	return {point, color};
 }
 
 Vec.valid = function(v) { 
@@ -123,6 +149,20 @@ Vec.subtract = function(v1, v2) {
     return Vec(v1.x - v2.x, v1.y - v2.y, v1.z - v2.z);
 };
 
+Color.add = function(c1, c2) {
+	return Color(c1.r + c2.r, c1.g + c2.g, c1.b + c2.b);
+}
+
+Color.valid = function(c) {
+	return typeof c === 'object' &&
+		typeof c.r === 'number' && 0 <= c.r && c.r <= 255
+		typeof c.g === 'number' && 0 <= c.g && c.g <= 255
+		typeof c.b === 'number' && 0 <= c.b && c.b <= 255;
+}
+
+Color.scale = function(c, scalar) {
+	return Color(c.r * scalar, c.g * scalar, c.b * scalar);
+}
 Color.BLACK = Color(0, 0, 0);
 Color.WHITE = Color(255, 255, 255);
 Color.RED = Color(255, 0, 0);

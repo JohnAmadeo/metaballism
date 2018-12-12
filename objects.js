@@ -18,24 +18,34 @@ const SCENE = {
 		// 	center=Vec(3, 0, -5),
 		// 	radius=1,
 		// ),
-		MetaballGroup([
-			Metaball(
-				center=Vec(0, 0, -11),
-				radius=1,
-			),
-			Metaball(
-				center=Vec(1.4, 0, -11),
-				radius=1,
-			),
-			Metaball(
-				center=Vec(-1.8, 0, -11),
-				radius=2,
-			),
-			Metaball(
-				center=Vec(-0.4, 2.3, -11),
-				radius=1.5,
-			),
-		]),
+		MetaballGroup(
+			metaballs=[
+				Metaball(
+					center=Vec(0, 0, -11),
+					radius=1,
+				),
+				Metaball(
+					center=Vec(1.4, 0, -11),
+					radius=1,
+				),
+				Metaball(
+					center=Vec(-1.8, 0, -11),
+					radius=2,
+				),
+				Metaball(
+					center=Vec(-0.4, 2.3, -11),
+					radius=1.5,
+				),
+			],
+			color=Color(100, 0, 255), // blue
+			lambert=0.8,
+		),
+	],
+	LIGHTS: [
+		PointLight(
+			position=Vec(0, 5, -8),
+			color=Color.WHITE,
+		),
 	],
 	ALGORITHM: 'spheretracing'
 }
