@@ -7,8 +7,19 @@ function render(pixelWidth, pixelHeight) {
 	for (let pixelY = 0; pixelY < pixelHeight -100; pixelY++) {
 		for (let pixelX = 0; pixelX < pixelWidth; pixelX++) {
 			const ray = pixelToRay(pixelX, pixelY, pixelWidth, pixelHeight);
-			const pixelColor = sphereTrace(ray, SCENE.OBJECTS, SCENE.LIGHTS);
-			setPixelColor(imageData, pixelX, pixelY, pixelColor);	
+			let intersection = intersectWSphereTracing(
+				ray, 
+				SCENE.OBJECTS, 
+			);
+			
+			if (intersection === null) {
+				setPixelColor(imageData, pixelX, pixelY, Color.RED);
+				continue					
+			}
+			
+			const { rayPoint, object } = intersection;
+			const pixelColor = shade(rayPoint, object, SCENE.LIGHTS);
+			setPixelColor(imageData, pixelX, pixelY, pixelColor);
 		}
 	}
 	
@@ -18,7 +29,6 @@ function render(pixelWidth, pixelHeight) {
 	ctx.putImageData(imageData, 0, 0);
 }
 
-// VERIFIED
 function pixelToRay(pixelX, pixelY, pixelWidth, pixelHeight) {
 	const ndcX = (pixelX + 0.5) / pixelWidth;
 	const ndcY = (pixelY + 0.5) / pixelHeight;
@@ -37,7 +47,8 @@ function pixelToRay(pixelX, pixelY, pixelWidth, pixelHeight) {
 	);
 }
 
-function sphereTrace(ray, objects, lights) {
+// Check for ray-object intersection using sphere-tracing 
+function intersectWSphereTracing(ray, objects) {
 	// NOTE: Cheat optimization: make the distance short 
 	const maxDistance = 20;
 	// the magnitude of the distance the ray has travelled from its origin
@@ -54,8 +65,7 @@ function sphereTrace(ray, objects, lights) {
 			)
 		);
 		
-		// keeps track of the shortest distance we've found between our ray 
-		// and the surface of a primitive
+		// keeps track of shortest distance between ray and an object's surface
 		let minRayToObjDistance = Number.POSITIVE_INFINITY;
 		let intersectingObject = null;
 		
@@ -72,14 +82,7 @@ function sphereTrace(ray, objects, lights) {
 		// Check if ray point is so close to an object we can approximate 
 		// that it has intersected with that object
 		if (minRayToObjDistance <= threshold * rayDistance) {
-			// return Color.BLACK;
-			// return Color(
-			// 	Color.WHITE.r * Math.min(1, (numSteps / 10)),
-			// 	Color.WHITE.g * Math.min(1, (numSteps / 10)),
-			// 	Color.WHITE.b * Math.min(1, (numSteps / 10)),
-			// );
-			return shade(rayPoint, intersectingObject, lights);
-			// return Color.BLACK;
+			return { rayPoint, object: intersectingObject };
 		}
 		
 		rayDistance += minRayToObjDistance;
@@ -91,97 +94,5 @@ function sphereTrace(ray, objects, lights) {
 	}
 	NUM_STEPS[numSteps] += 1;
 	
-	return Color.RED;
-}
-
-function getNormal(rayPoint, object) {
-	const delta = 10e-5;
-	const pt = rayPoint;
-	
-	const xNorm = 
-		object.duf(Vec.add(rayPoint, Vec(delta, 0, 0))) - 
-		object.duf(Vec.add(rayPoint, Vec(-delta, 0, 0)));
-		
-	const yNorm = 
-		object.duf(Vec.add(rayPoint, Vec(0, delta, 0))) - 
-		object.duf(Vec.add(rayPoint, Vec(0, -delta, 0)));
-		
-	const zNorm = 
-		object.duf(Vec.add(rayPoint, Vec(0, 0, delta))) - 
-		object.duf(Vec.add(rayPoint, Vec(0, 0, -delta)));
-		
-	return Vec.unitVector(Vec(xNorm, yNorm, zNorm));
-}
-
-function shade(rayPoint, object, lights) {
-	const normal = getNormal(rayPoint, object);
-	let pixelColor = Color.BLACK;
-	
-	for (let light of lights) {
-		const lightDirection = Vec.unitVector(
-			Vec.subtract(light.point, rayPoint)
-		);
-		
-		const illumination = Math.max(
-			0,
-			Vec.dotProduct(
-				lightDirection, 
-				// unit normal coming out of the sphere
-				normal,
-			),
-		);
-		
-		pixelColor = Color.add(
-			pixelColor,
-			Color.scale(
-				light.color,
-				illumination,
-			)
-		);
-	}
-	
-	pixelColor = Color(
-		pixelColor.r * object.color.r,
-		pixelColor.g * object.color.g,
-		pixelColor.b * object.color.b,
-	);
-	
-	pixelColor = Color.scale(pixelColor, object.lambert);
-	pixelColor = Color.scale(pixelColor, 1 / 255);
-
-	// l(pixelColor);
-	return pixelColor;
-}
-
-function sphereIntersection(ray, sphere) {
-	const A = Vec.dotProduct(ray.direction, ray.direction);
-	const originMinusSphereCenter = Vec.subtract(ray.origin, sphere.center);
-	const B = Vec.dotProduct(
-		Vec.scale(ray.direction, 2),
-		originMinusSphereCenter,
-	);
-	const C = 
-		Vec.dotProduct(originMinusSphereCenter, originMinusSphereCenter) - 
-		(sphere.radius * sphere.radius);
-		
-	if (discriminant(A, B, C) < 0) {
-		return null;
-	} else {
-		const root = smallestRoot(A, B, C);
-		return Vec.add(
-			ray.origin,
-			Vec.scale(ray.direction, root),
-		);
-	}
-}
-
-function discriminant(A, B, C) {
-	return (B * B) - (4 * A * C);
-}
-
-function smallestRoot(A, B, C) {
- 	const discrim = discriminant(A, B, C);
-	const root1 = (-B + Math.sqrt(discrim)) / (2 * A);
-	const root2 = (-B - Math.sqrt(discrim)) / (2 * A);
-	return Math.min(root1, root2);
+	return null;
 }
