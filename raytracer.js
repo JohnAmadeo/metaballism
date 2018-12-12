@@ -34,13 +34,14 @@ function pixelToRay(pixelX, pixelY, pixelWidth, pixelHeight) {
 	const ndcY = (pixelY + 0.5) / pixelHeight;
 	const aspectRatio = pixelWidth / pixelHeight;
 	
+	const { fov, zDirection } = SCENE.CAMERA;
 	return Ray(
 		origin=SCENE.CAMERA.origin,
 		direction=Vec.unitVector(
 			Vec(
-				((2 * ndcX) - 1) * Math.tan(SCENE.CAMERA.fov / 2) * aspectRatio,
-				(1 - (2 * ndcY)) * Math.tan(SCENE.CAMERA.fov / 2),
-				SCENE.CAMERA.zDirection,
+				((2 * ndcX) - 1) * Math.tan(fov / 2) * aspectRatio,
+				(1 - (2 * ndcY)) * Math.tan(fov / 2),
+				zDirection,
 			)	
 		),		
 	);
