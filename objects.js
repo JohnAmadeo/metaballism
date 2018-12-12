@@ -10,14 +10,24 @@ const SCENE = {
 		zDirection=-1,
 	),
 	OBJECTS: [
-		Sphere(
-			center=Vec(0, 0, -7),
-			radius=1,
-		),
+		// Sphere(
+		// 	center=Vec(0, 0, -7),
+		// 	radius=1,
+		// ),
 		// Sphere(
 		// 	center=Vec(3, 0, -5),
 		// 	radius=1,
 		// ),
+		MetaballGroup([
+			Metaball(
+				center=Vec(0, 0, -11),
+				radius=1,
+			),
+			Metaball(
+				center=Vec(-1.8, 0, -11),
+				radius=2,
+			),
+		]),
 	],
 	ALGORITHM: 'spheretracing'
 }

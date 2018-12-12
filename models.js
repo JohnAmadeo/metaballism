@@ -35,6 +35,50 @@ function Sphere(center, radius)  {
 	}
 }
 
+function MetaballGroup(metaballs) {
+	// define density function of a metaball as a closure
+	function getDensity(metaball, point) {
+		// distance from ray point to the center of the metaball
+		const r = Vec.magnitude(
+			Vec.subtract(point, metaball.center)
+		);
+		const R = metaball.radius;
+		
+		if (r >= R) {
+			return 0;
+		}
+		
+		return (
+			(2 * (r**3 / R**3)) -
+			(3 * (r**2 / R**2)) + 
+			1
+		);
+	}
+	
+	return {
+		metaballs,
+		duf: function(point) {
+			const threshold = 0.2;
+			const radiiSum = metaballs
+				.map(metaball => metaball.radius)
+				.reduce((tot, radius) => tot + radius, 0);
+			
+			const densitySum = metaballs
+				.map(metaball => getDensity(metaball, point))
+				.reduce((tot, density) => tot + density, 0);
+				
+			return (2 / 3) * (threshold - densitySum) * radiiSum;			
+		}
+	}
+}
+
+function Metaball(center, radius) {
+	// take advantage of built-in type checking in Sphere
+	let sphere = Sphere(center, radius);
+	delete sphere.duf;
+	return sphere;
+}
+
 Vec.valid = function(v) { 
 	return typeof v === 'object' &&
 		typeof v.x === 'number' &&
