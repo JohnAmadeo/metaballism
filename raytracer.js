@@ -1,49 +1,121 @@
-const NUM_STEPS = {};
-
 function render(pixelWidth, pixelHeight) {
-	setInterval(() => {
-		raytrace(512, 512);
-		move_DANGEROUS();		
+	// If user has not uploaded a JSON file that describes the scene
+	if (SCENE === null) {
+		SCENE = DEFAULT_SCENE;
+	}
+	
+	let scene = SCENE;
+
+	let frame = 0;
+	let images = [];
+	
+	const id = setInterval(() => {
+		let pixelColorsList = [];
+		const step = 1;
+		const widthStep = pixelWidth / step;
+		const heightStep = pixelHeight / step;
+		
+		for (let i = 0; i < step; i++) {
+			for (let j = 0; j < step; j++) {
+				// const worker = new Worker("worker.js");
+				// worker.postMessage({
+				// 	fromWidth: i * widthStep, 
+				// 	toWidth: (i + 1) * widthStep, 
+				// 	pixelWidth,
+				// 	fromHeight: j * heightStep, 
+				// 	toHeight: (j + 1) * heightStep, 
+				// 	pixelHeight, 
+				// 	jsonScene: JSON.stringify(scene),
+				// });
+				// 
+				// worker.onMessage = function(pixelColors) {
+				// 	pixelColorsList.push(pixelColors);
+				// 	if (pixelColorsList.length === step**2) {
+				// 		fillPixels('c', pixelWidth, pixelHeight, pixelColorsList);
+				// 
+				// 		// Update the scene
+				// 		scene = moveScene(scene);
+				// 
+				// 		// Saving rendered frames
+				// 		images.push(getCanvasAsPNG('c'));
+				// 		frame += 1;
+				// 		if (frame > 100) {
+				// 			clearInterval(id);
+				// 			downloadURIs(images);
+				// 		}	
+				// 	}
+				// }
+				
+				pixelColorsList.push(raytrace(
+					i * widthStep, 
+					(i + 1) * widthStep, 
+					pixelWidth, 
+					j * heightStep, 
+					(j + 1) * heightStep, 
+					pixelHeight,
+					scene,
+				));
+				
+			}
+		}
+		
+		fillPixels('c', pixelWidth, pixelHeight, pixelColorsList);
+		
+		// Update the scene
+		scene = moveScene(scene);
+		
+		// Saving rendered frames
+		images.push(getCanvasAsPNG('c'));
+		frame += 1;
+		if (frame > 100) {
+			clearInterval(id);
+			downloadURIs(images);
+		}	
 	}, 20);
 }
 
-function raytrace(pixelWidth, pixelHeight) {
-	let { ctx, imageData } = getImageData('c', pixelWidth, pixelHeight);
-	
+function raytrace(
+	fromWidth, 
+	toWidth, 
+	pixelWidth, 
+	fromHeight, 
+	toHeight, 
+	pixelHeight, 
+	scene,
+) {
 	let numPixels = 0;
-	for (let pixelY = 0; pixelY < pixelHeight -100; pixelY++) {
-		for (let pixelX = 0; pixelX < pixelWidth; pixelX++) {
-			const ray = pixelToRay(pixelX, pixelY, pixelWidth, pixelHeight);
+	let pixelColors = new Map();
+	
+	for (let pixelY = fromHeight; pixelY < toHeight; pixelY++) {
+		for (let pixelX = fromWidth; pixelX < toWidth; pixelX++) {
+			const ray = pixelToRay(pixelX, pixelY, pixelWidth, pixelHeight, scene.CAMERA);
 			let intersection = intersect(
 				ray, 
-				SCENE.OBJECTS, 
+				scene.OBJECTS, 
 			);
 			
 			if (intersection === null) {
-				setPixelColor(imageData, pixelX, pixelY, Color.RED);
+				pixelColors.set(Pixel(pixelX, pixelY), Color.RED);
 				continue					
 			}
 			
 			const { rayPoint, object } = intersection;
-			const pixelColor = shade(rayPoint, object, SCENE.LIGHTS, SCENE.OBJECTS);
-			setPixelColor(imageData, pixelX, pixelY, pixelColor);
+			const pixelColor = shade(rayPoint, object, scene.LIGHTS, scene.OBJECTS);
+			pixelColors.set(Pixel(pixelX, pixelY), pixelColor);
 		}
 	}
 	
-	l(NUM_STEPS);
-	
-	// fill the canvas with the computer pixel values
-	ctx.putImageData(imageData, 0, 0);
+	return pixelColors;
 }
 
-function pixelToRay(pixelX, pixelY, pixelWidth, pixelHeight) {
+function pixelToRay(pixelX, pixelY, pixelWidth, pixelHeight, camera) {
 	const ndcX = (pixelX + 0.5) / pixelWidth;
 	const ndcY = (pixelY + 0.5) / pixelHeight;
 	const aspectRatio = pixelWidth / pixelHeight;
 	
-	const { fov, zDirection } = SCENE.CAMERA;
+	const { fov, zDirection } = camera;
 	return Ray(
-		origin=SCENE.CAMERA.origin,
+		origin=camera.origin,
 		direction=Vec.unitVector(
 			Vec(
 				((2 * ndcX) - 1) * Math.tan(fov / 2) * aspectRatio,
@@ -95,11 +167,6 @@ function intersect(ray, objects) {
 		rayDistance += minRayToObjDistance;
 		numSteps += 1;
 	}
-	
-	if (!(numSteps in NUM_STEPS)) {
-		NUM_STEPS[numSteps] = 0;
-	}
-	NUM_STEPS[numSteps] += 1;
 	
 	return null;
 }

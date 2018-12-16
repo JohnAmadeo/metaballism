@@ -1,4 +1,5 @@
 // const { l, within } = require('./utils');
+function Pixel(x, y) { return {x,y}; }
 function Color(r, g, b) { return {r,g,b}; }
 function Vec(x, y, z) { return {x,y,z}; }
 function Point(x, y, z) { return Vec(x, y, z); }
@@ -102,14 +103,15 @@ function MetaballGroup(metaballs, color, lambert) {
 	}
 }
 
-function Metaball(center, radius) {
+function Metaball(center, radius, velocity) {
 	if (
 		typeof radius !== 'number' || 
-		!Vec.valid(center)
+		!Vec.valid(center) ||
+		!Vec.valid(velocity)
 	) {
 		throw "Not a valid metaball"
 	}
-	return { center, radius };
+	return { center, radius, velocity };
 }
 
 function PointLight(point, color) {
