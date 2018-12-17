@@ -10,56 +10,12 @@ function render(pixelWidth, pixelHeight) {
 	let images = [];
 	
 	const id = setInterval(() => {
-		let pixelColorsList = [];
 		const step = 1;
 		const widthStep = pixelWidth / step;
 		const heightStep = pixelHeight / step;
 		
-		for (let i = 0; i < step; i++) {
-			for (let j = 0; j < step; j++) {
-				// const worker = new Worker("worker.js");
-				// worker.postMessage({
-				// 	fromWidth: i * widthStep, 
-				// 	toWidth: (i + 1) * widthStep, 
-				// 	pixelWidth,
-				// 	fromHeight: j * heightStep, 
-				// 	toHeight: (j + 1) * heightStep, 
-				// 	pixelHeight, 
-				// 	jsonScene: JSON.stringify(scene),
-				// });
-				// 
-				// worker.onMessage = function(pixelColors) {
-				// 	pixelColorsList.push(pixelColors);
-				// 	if (pixelColorsList.length === step**2) {
-				// 		fillPixels('c', pixelWidth, pixelHeight, pixelColorsList);
-				// 
-				// 		// Update the scene
-				// 		scene = moveScene(scene);
-				// 
-				// 		// Saving rendered frames
-				// 		images.push(getCanvasAsPNG('c'));
-				// 		frame += 1;
-				// 		if (frame > 100) {
-				// 			clearInterval(id);
-				// 			downloadURIs(images);
-				// 		}	
-				// 	}
-				// }
-				
-				pixelColorsList.push(raytrace(
-					i * widthStep, 
-					(i + 1) * widthStep, 
-					pixelWidth, 
-					j * heightStep, 
-					(j + 1) * heightStep, 
-					pixelHeight,
-					scene,
-				));
-				
-			}
-		}
-		
-		fillPixels('c', pixelWidth, pixelHeight, pixelColorsList);
+		const pixelColors = raytrace(pixelWidth, pixelHeight, scene);
+		fillPixels('c', pixelWidth, pixelHeight, pixelColors);
 		
 		// Update the scene
 		scene = moveScene(scene);
@@ -74,20 +30,12 @@ function render(pixelWidth, pixelHeight) {
 	}, 20);
 }
 
-function raytrace(
-	fromWidth, 
-	toWidth, 
-	pixelWidth, 
-	fromHeight, 
-	toHeight, 
-	pixelHeight, 
-	scene,
-) {
+function raytrace(pixelWidth, pixelHeight, scene) {
 	let numPixels = 0;
 	let pixelColors = new Map();
 	
-	for (let pixelY = fromHeight; pixelY < toHeight; pixelY++) {
-		for (let pixelX = fromWidth; pixelX < toWidth; pixelX++) {
+	for (let pixelY = 0; pixelY < pixelHeight; pixelY++) {
+		for (let pixelX = 0; pixelX < pixelWidth; pixelX++) {
 			const ray = pixelToRay(pixelX, pixelY, pixelWidth, pixelHeight, scene.CAMERA);
 			let intersection = intersect(
 				ray, 

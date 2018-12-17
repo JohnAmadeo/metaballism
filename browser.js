@@ -21,13 +21,11 @@ function getCanvasAsPNG(canvasId) {
 	return document.getElementById(canvasId).toDataURL("image/png");
 }
 
-function fillPixels(canvasId, pixelWidth, pixelHeight, pixelColorsList) {
+function fillPixels(canvasId, pixelWidth, pixelHeight, pixelColors) {
 	let { ctx, imageData } = getImageData(canvasId, pixelWidth, pixelHeight);
-	for (let pixelColors of pixelColorsList) {
-		for (let [pixel, color] of pixelColors) {
-			setPixelColor(imageData, pixel.x, pixel.y, color);
-		}		
-	}
+	for (let [pixel, color] of pixelColors) {
+		setPixelColor(imageData, pixel.x, pixel.y, color);
+	}		
 	
 	ctx.putImageData(imageData, 0, 0);
 }
