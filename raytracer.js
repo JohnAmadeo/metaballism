@@ -23,9 +23,9 @@ function render(pixelWidth, pixelHeight) {
 		// Saving rendered frames
 		images.push(getCanvasAsPNG('c'));
 		frame += 1;
-		if (frame > 100) {
+		if (frame > 1000) {
 			clearInterval(id);
-			downloadURIs(images);
+			// downloadURIs(images);
 		}	
 	}, 20);
 }

@@ -111,7 +111,11 @@ function Metaball(center, radius, velocity) {
 	) {
 		throw "Not a valid metaball"
 	}
-	return { center, radius, velocity };
+	return { 
+		center, 
+		radius, 
+		velocity,
+	 };
 }
 
 function PointLight(point, color) {
@@ -120,6 +124,28 @@ function PointLight(point, color) {
 	}
 	return {point, color};
 }
+
+Metaball.isCollision = function(b1, b2) {
+	if (b1.collided || b2.collided) {
+		return false;
+	}
+	
+	const radiusToRadius = 0.8 * (b1.radius + b2.radius);
+	return Math.abs(b1.center.x - b2.center.x) < radiusToRadius && 
+		Math.abs(b1.center.y - b2.center.y) < radiusToRadius && 
+		Math.abs(b1.center.z - b2.center.z) < radiusToRadius;	
+}
+
+Metaball.collide = function(m1, m2, v1i, v2i) {	
+	const v2f = (((m1/m2) * (2*v1i - v2i)) + v2i) / ((m2 + m1) / (m2));
+	const v1f = v2i + v2f - v1i;
+	
+	return { v1f, v2f };
+}
+
+// TODO: Find a more realistic mass function that's still directly 
+// proportional to the radius
+Metaball.mass = function(b) { return b.radius; }
 
 Vec.valid = function(v) { 
 	return typeof v === 'object' &&

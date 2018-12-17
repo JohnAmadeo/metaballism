@@ -48,55 +48,44 @@ const DEFAULT_SCENE = {
 	BORDERS: {
 		LEFT: -8,
 		RIGHT: 8,
-		TOP: 5,
-		BOTTOM: -5,
+		TOP: 8,
+		BOTTOM: -8,
 		BACK: -15,
 		FRONT: -5,
 	},
 	OBJECTS: [
-		// Sphere(
-		// 	center=Vec(0, 0, -7),
-		// 	radius=1,
-		// ),
-		// Sphere(
-		// 	center=Vec(3, 0, -5),
-		// 	radius=1,
-		// ),
 		MetaballGroup(
 			metaballs=[
-				// Metaball(
-				// 	center=Vec(0, 0, -11),
-				// 	radius=1,
-				// ),
-				// Metaball(
-				// 	center=Vec(1.4, 0, -11),
-				// 	radius=1,
-				// ),
 				Metaball(
-					center=Vec(-2, 0, -11),
-					radius=2,
-					velocity=Vec(0.2, 0.1, 0.1),
+					center=Vec(0, 3, -11),
+					radius=1,
+					velocity=Vec(0.2, -0.2, 0),
 				),
 				Metaball(
-					center=Vec(2.4, 2.3, -11),
+					center=Vec(1.4, -2, -11),
+					radius=1,
+					velocity=Vec(0, 0.2, 0),
+				),
+				// Straight x-clash
+				Metaball(
+					center=Vec(-2, -2, -11),
 					radius=2,
-					velocity=Vec(-0.2, 0.4, 0.1),
+					velocity=Vec(0.1, 0.1, 0),
 				),
 				Metaball(
-					center=Vec(2.6, 0.4, -11),
+					center=Vec(2.4, 2.4, -11),
+					radius=2,
+					velocity=Vec(-0.3, 0.3, 0),
+				),
+				Metaball(
+					center=Vec(2.6, 0, -7),
 					radius=1.5,
 					velocity=Vec(0.2, 0, -0.2),
 				),
-				//
 				Metaball(
-					center=Vec(-2, 4, -11),
-					radius=2,
-					velocity=Vec(0.2, 0.1, 0.1),
-				),
-				Metaball(
-					center=Vec(0.4, 2.3, -7),
-					radius=1,
-					velocity=Vec(-0.2, 0.4, 0.1),
+					center=Vec(2.6, 3, -8),
+					radius=2.5,
+					velocity=Vec(0.1, 0, 0.2),
 				),
 			],
 			color=Color(100, 0, 255), // blue
