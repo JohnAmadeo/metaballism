@@ -15,9 +15,10 @@ onmessage = function(raytracerArgs) {
 		toHeight, 
 		pixelHeight, 
 		jsonScene, 
-	} = raytracerArgs;
+	} = raytracerArgs.data;
 	
-	console.log(raytracerArgs);
+	// console.log(raytracerArgs);
+	// console.log(JSON.parse(raytracerArgs.data.jsonScene));
 	
 	const pixelColors = raytrace(
 		fromWidth, 

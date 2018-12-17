@@ -9,69 +9,52 @@ function render(pixelWidth, pixelHeight) {
 	let frame = 0;
 	let images = [];
 	
-	const id = setInterval(() => {
+	// const id = setInterval(() => {
 		let pixelColorsList = [];
-		const step = 1;
+		let workers = [];
+		const step = 8;
 		const widthStep = pixelWidth / step;
 		const heightStep = pixelHeight / step;
 		
 		for (let i = 0; i < step; i++) {
 			for (let j = 0; j < step; j++) {
-				// const worker = new Worker("worker.js");
-				// worker.postMessage({
-				// 	fromWidth: i * widthStep, 
-				// 	toWidth: (i + 1) * widthStep, 
-				// 	pixelWidth,
-				// 	fromHeight: j * heightStep, 
-				// 	toHeight: (j + 1) * heightStep, 
-				// 	pixelHeight, 
-				// 	jsonScene: JSON.stringify(scene),
-				// });
-				// 
-				// worker.onMessage = function(pixelColors) {
-				// 	pixelColorsList.push(pixelColors);
-				// 	if (pixelColorsList.length === step**2) {
-				// 		fillPixels('c', pixelWidth, pixelHeight, pixelColorsList);
-				// 
-				// 		// Update the scene
-				// 		scene = moveScene(scene);
-				// 
-				// 		// Saving rendered frames
-				// 		images.push(getCanvasAsPNG('c'));
-				// 		frame += 1;
-				// 		if (frame > 100) {
-				// 			clearInterval(id);
-				// 			downloadURIs(images);
-				// 		}	
-				// 	}
-				// }
+				const worker = new Worker("worker.js");
+				worker.postMessage({
+					fromWidth: i * widthStep, 
+					toWidth: (i + 1) * widthStep, 
+					pixelWidth,
+					fromHeight: j * heightStep, 
+					toHeight: (j + 1) * heightStep, 
+					pixelHeight, 
+					jsonScene: JSON.stringify(scene),
+				});
 				
-				pixelColorsList.push(raytrace(
-					i * widthStep, 
-					(i + 1) * widthStep, 
-					pixelWidth, 
-					j * heightStep, 
-					(j + 1) * heightStep, 
-					pixelHeight,
-					scene,
-				));
+				worker.onmessage = function(args) {
+					pixelColorsList.push(args.data);
+					if (pixelColorsList.length === step**2) {
+						fillPixels('c', pixelWidth, pixelHeight, pixelColorsList);
+						
+						for (let worker of workers) {
+							worker.terminate();
+						}
+					
+						// Update the scene
+						scene = moveScene(scene);
+					
+						// Saving rendered frames
+						images.push(getCanvasAsPNG('c'));
+						frame += 1;
+						if (frame > 100) {
+							clearInterval(id);
+							downloadURIs(images);
+						}
+					}
+				}	
 				
+				workers.push(worker);			
 			}
 		}
-		
-		fillPixels('c', pixelWidth, pixelHeight, pixelColorsList);
-		
-		// Update the scene
-		scene = moveScene(scene);
-		
-		// Saving rendered frames
-		images.push(getCanvasAsPNG('c'));
-		frame += 1;
-		if (frame > 100) {
-			clearInterval(id);
-			downloadURIs(images);
-		}	
-	}, 20);
+	// }, 20);
 }
 
 function raytrace(
